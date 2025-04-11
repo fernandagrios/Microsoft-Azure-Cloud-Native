@@ -1,0 +1,74 @@
+🌐✨ Summary – Fundamentals of Azure Application Platform ✨🌐
+
+In our first class, we took a deep dive into the world of ☁️ cloud computing and how Microsoft Azure helps businesses build powerful, scalable applications.
+
+🔍 We started by exploring the cloud models:
+
+☁️ Public Cloud – Shared infrastructure, cost-effective.
+
+🏢 Private Cloud – Dedicated environment, more control.
+
+🔗 Hybrid Cloud – Best of both worlds, combining flexibility and security.
+
+💸 We compared 💰 CapEx (Capital Expenditure) vs. 💳 OpEx (Operational Expenditure):
+CapEx requires heavy upfront investment 🏗️, while OpEx allows for flexible, pay-as-you-go pricing 💵—a major shift that enables agility and cost savings 📉.
+
+🌟 Benefits of Cloud Computing:
+
+🔄 Scalability
+
+📈 Flexibility
+
+🌍 Global reach
+
+💥 High availability
+
+🛡️ Security
+
+💾 Backup and disaster recovery
+
+🔧 We looked at the 3️⃣ Service Models:
+
+🏗️ IaaS – Infrastructure as a Service: You manage VMs, networking, and OS.
+
+⚙️ PaaS – Platform as a Service: You focus on your app, Azure handles the rest.
+
+📦 SaaS – Software as a Service: You simply use the app, no maintenance needed.
+
+🛡️ We discussed the 🔁 Shared Responsibility Model, which defines who is responsible for what—Microsoft takes care of the infrastructure, while users manage their data, identities, and applications (depending on the model).
+
+🏗️ Azure Architecture Components included:
+
+🌍 Regions – Global locations hosting Azure datacenters.
+
+🏢 Availability Zones – Redundant, physically separate datacenters in a region.
+
+🤝 Region Pairs – For backup and disaster recovery.
+
+🏛️ Sovereign Regions – For compliance with local laws and regulations.
+
+🧩 Resources, 🧾 Subscriptions, and 🗂️ Management Groups – Organizing and managing your Azure environment.
+
+💻 Azure Compute Services included:
+
+🖥️ Virtual Machines (VMs)
+
+🌐 App Services
+
+🐳 Azure Kubernetes Service (AKS)
+
+📦 For Containers, we explored services that simplify deployment and scaling.
+
+🗄️ In Storage, we covered:
+
+☁️ Blob, 📁 File, 📬 Queue, and 📊 Table Storage
+
+🔁 Redundancy Options: LRS, ZRS, GRS, etc.
+
+🧊 Storage Tiers: Hot 🔥, Cool 🆒, and Archive 🗃️ – to save costs based on data access frequency
+
+🌐 Endpoints – to access and manage storage across services
+
+📦💼 Lastly, we learned about Azure Data Box – a secure physical device that helps transfer large amounts of data to Azure when the internet isn’t enough 🚚💽.
+
+🚀 This class laid the foundation for understanding Azure’s platform—preparing us to build smart, scalable, and resilient cloud solutions!
