@@ -1,0 +1,195 @@
+🔐 Objetivo Geral:
+Permitir que apenas usuários autenticados acessem uma API de pagamentos hospedada em Azure, protegendo o acesso com Azure AD e Bearer Token (OAuth 2.0).
+
+🧭 Explicação do Fluxo:
+Usuário solicita autenticação:
+
+Um usuário (ícone de pessoa à esquerda) inicia o processo de autenticação para acessar a API.
+
+Ele se autentica com Azure Active Directory (Azure AD) — que é o serviço de identidade da Microsoft.
+
+Azure AD gera um token:
+
+Após a autenticação, o Azure AD fornece um token de acesso (Access Token) ao usuário.
+
+Esse token segue o padrão Bearer Token, muito usado em APIs REST com OAuth 2.0.
+
+Token é enviado à API:
+
+O usuário envia esse token no cabeçalho da requisição (Authorization: Bearer <token>) ao Azure API Management (APIM), que está simbolizado pela nuvem com o ponto central roxo.
+
+APIM valida o token:
+
+O Azure API Management atua como gateway, validando o token recebido com o Azure AD para garantir que ele seja válido e autorizado.
+
+Esse processo ocorre dentro do escopo do Azure, como indicado pelo contorno “Azure”.
+
+Requisição é encaminhada à API de Pagamentos:
+
+Uma vez autenticada e autorizada, a requisição segue para a API de Pagamentos, que está dentro do grupo de recursos chamado RG-APIPagamento.
+
+A API está representada por um ícone azul com "WWW".
+
+📦 Componentes envolvidos:
+
+| Componente                      | Função                                           |
+| ------------------------------- | ------------------------------------------------ |
+| **Usuário**                     | Cliente que deseja acessar a API                 |
+| **Azure AD**                    | Responsável por autenticação e emissão de tokens |
+| **Azure API Management (APIM)** | Gateway para expor e proteger a API              |
+| **API de Pagamento**            | Backend real que processa pagamentos             |
+| **Bearer Token**                | Forma de autenticação baseada em OAuth 2.0       |
+
+Guia passo a passo completo para você criar uma API de Pagamentos segura com Azure API Management (APIM)
+
+✅ Objetivo
+Expor uma API de pagamentos de forma segura usando:
+
+Azure App Service (Pricing Tier: Developer)
+
+Azure API Management (APIM)
+
+JWT com Azure AD (App Registration)
+
+Subscription Key como boa prática de segurança
+
+🔧 ETAPA 1 – Criar a API no Azure App Service
+1.1. Criar um App Service Plan
+Acesse o portal Azure Portal.
+
+Pesquise por App Services.
+
+Clique em "Create" > Web App.
+
+Configure:
+
+Name: api-pagamento
+
+Runtime Stack: Escolha (.NET, Node.js etc.)
+
+Operating System: Windows ou Linux
+
+Region: Próxima a seus usuários
+
+App Service Plan: Escolha o Pricing Tier: Developer (F1 ou D1 para testes)
+
+1.2. Deploy da API
+Faça o deploy da sua API usando GitHub Actions, FTP ou Visual Studio.
+
+Teste o endpoint diretamente: https://api-pagamento.azurewebsites.net/health
+
+🔐 ETAPA 2 – Criar API Management e expor a API
+2.1. Criar um Azure API Management
+Pesquise por API Management Services.
+
+Clique em "Create".
+
+Configure:
+
+Name: apim-pagamento
+
+Pricing Tier: Developer (ideal para testes)
+
+Resource Group: Mesmo da sua API (boa prática)
+
+2.2. Importar a API
+Dentro do APIM:
+
+Vá em APIs > Add API > HTTP
+
+Nome: API Pagamento
+
+Web service URL: https://api-pagamento.azurewebsites.net
+
+Escolha “Enable subscription key” (padrão ativado — boa prática)
+
+🛡️ ETAPA 3 – Boas práticas: Subscription Key
+3.1. Ativar e exigir chave de subscrição
+Ao criar a API no APIM, ele exige uma chave de assinatura (Ocp-Apim-Subscription-Key) por padrão.
+
+Isso obriga os consumidores da API a se autenticarem com essa chave, adicionando uma camada extra de segurança.
+
+3.2. Testar com a chave
+Vá em APIs > Test no Azure Portal.
+
+Use a chave fornecida automaticamente na seção de Subscriptions.
+
+🔑 ETAPA 4 – Criar Autenticação com JWT (Azure AD)
+4.1. Registrar o aplicativo no Azure AD
+Vá para Azure Active Directory > App registrations.
+
+Clique em "New registration"
+
+Nome: cliente-api-pagamento
+
+Redirect URI (opcional): pode deixar em branco se for API
+
+Salve o Application (client) ID e o Directory (tenant) ID
+
+4.2. Criar um segredo (Client Secret)
+Dentro do app registrado:
+
+Vá em Certificates & secrets > New client secret
+
+Nome: api-secret
+
+Copie e salve o valor gerado com segurança
+
+4.3. Configurar escopos e permissões (opcional)
+Vá em Expose an API
+
+Clique em Set para o Application ID URI
+
+Adicione um Scope, como access_as_user
+
+Vá em API permissions > Add a permission > My APIs se for consumir de outro app
+
+🧪 ETAPA 5 – Proteger a API com JWT no APIM
+5.1. Configurar validação de JWT
+No Azure API Management:
+
+Vá em APIs > API Pagamento > Inbound Processing
+
+Adicione a seguinte política:
+
+xml
+Copy
+Edit
+<validate-jwt header-name="Authorization" failed-validation-httpcode="401" failed-validation-error-message="Unauthorized">
+    <openid-config url="https://login.microsoftonline.com/{tenant-id}/v2.0/.well-known/openid-configuration" />
+    <audiences>
+        <audience>{application-client-id}</audience>
+    </audiences>
+</validate-jwt>
+🔁 Substitua {tenant-id} e {application-client-id} pelos valores reais da sua App Registration.
+
+5.2. Testar com token JWT
+Obtenha um token usando POST para:
+
+bash
+Copy
+Edit
+https://login.microsoftonline.com/{tenant-id}/oauth2/v2.0/token
+Com body (x-www-form-urlencoded):
+
+ini
+Copy
+Edit
+grant_type=client_credentials
+client_id=xxxxx
+client_secret=xxxxx
+scope=api://{application-client-id}/.default
+Use esse token como:
+
+makefile
+Copy
+Edit
+Authorization: Bearer <access_token>
+
+🎯 Resumo
+Etapa	Ação
+1	Criar a API com Azure App Service
+2	Criar o Azure API Management e importar a API
+3	Exigir subscription key como segurança adicional
+4	Registrar o cliente no Azure AD e emitir JWT
+5	Validar o JWT no APIM para acesso seguro
