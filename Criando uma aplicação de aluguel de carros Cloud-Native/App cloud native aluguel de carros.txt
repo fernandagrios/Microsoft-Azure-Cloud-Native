@@ -1,0 +1,83 @@
+Construção de uma aplicação de aluguel de carros Cloud-Native
+
+🔄 Fluxo Geral da Aplicação
+Tráfego HTTP
+
+Entrada do usuário na aplicação (ex: acessar o site ou app).
+
+Esse tráfego vai para o DNS que redireciona para a aplicação correta.
+
+DNS
+
+Resolve o domínio e direciona o tráfego para o front-end.
+
+Front RentACar
+
+Interface visual da aplicação (frontend).
+
+Pode ser hospedada em uma CDN ou serviço como Azure Static Web Apps.
+
+BFF - RentACar Node (Backend for Frontend)
+
+Camada intermediária que interage com os microserviços.
+
+Traduz as requisições do front para os serviços internos de backend.
+
+⚙️ Processos Internos (Microserviços e Filas)
+RentProcess (Azure Function)
+
+Função que executa a lógica de aluguel.
+
+Salva os dados no banco de dados (possivelmente PostgreSQL como o ícone sugere).
+
+PaymentQueue
+
+Fila (por exemplo, Azure Storage Queue ou Service Bus) que segura as solicitações de pagamento.
+
+Garante desacoplamento e resiliência.
+
+PaymentProcess (Azure Function)
+
+Consome as mensagens da fila e executa o pagamento.
+
+Pode integrar com APIs de pagamento externas (ex: Stripe, PayPal).
+
+✉️ Notificações
+EmailNotification
+
+Serviço responsável por enviar notificações por e-mail.
+
+Recebe dados do PaymentProcess para informar ao usuário sobre o aluguel/pagamento.
+
+Send Email
+
+Serviço final de envio de e-mails, como SendGrid ou SMTP configurado.
+
+🔒 Serviços de Suporte (Bottom Layer)
+Monitoramento
+
+Indicadores de desempenho da aplicação (logs, métricas, alertas).
+
+Pode ser Azure Application Insights, Grafana, etc.
+
+KeyVault
+
+Gerencia segredos, chaves e credenciais sensíveis com segurança.
+
+Feature Flags
+
+Permite ativar/desativar funcionalidades sem fazer deploy novo (ex: Azure App Configuration).
+
+✅ Características Cloud-Native Presentes
+Desacoplamento por filas (PaymentQueue)
+
+Escalabilidade por funções serverless (Azure Functions)
+
+Segurança (KeyVault)
+
+Agilidade e controle de features (Feature Flags)
+
+Observabilidade (Monitoramento)
+
+Notificações assíncronas (EmailNotification)
+
