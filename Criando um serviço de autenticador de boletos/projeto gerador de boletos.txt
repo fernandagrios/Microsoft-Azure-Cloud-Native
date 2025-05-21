@@ -1,0 +1,135 @@
+Criando um Serviço Autenticador de Boletos
+
+🔍 Descrição do Projeto
+A imagem mostra um fluxo de integração entre sistemas, com os seguintes componentes principais:
+
+1. Fonte de Dados
+Representa a origem dos dados do boleto.
+
+2. Azure Function: Gerador-Boleto ⚡
+Esta é uma função no Azure que recebe os dados brutos e gera o boleto no formato desejado (PDF, HTML, etc.). Escrita em C#, ela utiliza alguma biblioteca para geração de boletos (ex: BoletoNet, ou APIs próprias).
+
+3. Azure Function: Validador-Boleto ⚡
+Esta função recebe o boleto (ou seus dados) e executa uma validação, como:
+
+Verificar campos obrigatórios
+
+Validar linha digitável
+
+Checar código de barras
+
+Confirmar vencimento e valores
+
+Também escrita em C#, com foco na regra de negócio para autenticação.
+
+🔄 Fluxo de Execução
+O sistema de origem envia os dados do boleto.
+
+Os dados são enviados a duas Azure Functions:
+
+Uma para gerar o boleto visual.
+
+Outra para validar/autenticar os dados do boleto.
+
+O serviço pode então retornar:
+
+O boleto pronto para ser impresso/pago.
+
+Uma confirmação se o boleto é válido ou não.
+
+Essa arquitetura separa bem as responsabilidades:
+
+Gerar o boleto → foco visual e estrutural.
+
+Validar o boleto → foco em regras e integridade.
+
+Usar Azure Functions oferece escalabilidade, baixo custo e rapidez no desenvolvimento com C#.
+
+🔍 Etapas de Execução
+
+🧩 1. Criando Namespace e Configurando o Lab
+a) Criar Namespace do Service Bus
+Acesse o portal do Azure.
+Vá em "Service Bus" > "Criar".
+Defina:
+Nome do namespace (ex: boleto-auth-ns)
+Região
+Camada de preço (Standard é recomendada para usar Tópicos).
+Clique em "Revisar e Criar".
+
+b) Criar Service Bus: Fila vs Tópico
+Conceito	Fila	Tópico
+Entrega	Um consumidor por mensagem	Vários consumidores
+Ideal para	Processos simples, um receptor	Broadcast para vários serviços
+Exemplo de uso	Uma função processando boletos	Validadores, logs, auditoria
+
+No contexto do projeto:
+Use Fila para comunicações diretas.
+Use Tópico se quiser que várias funções tratem mensagens (ex: log + autenticação).
+
+🛠️ No Azure Portal:
+Vá em Service Bus > Filas ou Tópicos > Adicionar > Dê um nome (ex: fila-boletos ou topico-boletos).
+c) Criar uma SAS Policy (Shared Access Signature)
+No namespace do Service Bus:
+Vá em "Shared access policies"
+Clique em “+ Add”
+Nomeie a policy (ex: ValidadorPolicy)
+Conceda permissões: Send, Listen ou Manage (geralmente: Send para quem envia, Listen para quem consome).
+Salve e anote a Connection String, será usada nas Azure Functions.
+
+📥 2. Recuperando o Encode de Código de Barras
+a) Entrada do Boleto
+Pode vir em HTML, PDF ou linha digitável (código de barras).
+b) Lógica de Extração
+Utilizar bibliotecas como:
+Para PDFs: PdfSharp, iTextSharp ou PdfPig.
+Para imagem/código de barras: ZXing.Net para C#.
+c) Função Azure: Extractor
+
+[FunctionName("ExtractBarcode")]
+public static async Task Run(
+    [ServiceBusTrigger("fila-boletos", Connection = "ServiceBusConnection")] string boletoData,
+    ILogger log)
+{
+    var codigoBarras = ExtrairLinhaDigitavel(boletoData); // lógica própria
+    // Enviar para fila de validação
+}
+
+🖼️ 3. Criando Camada de UI (Interface Web)
+a) Funcionalidades
+Input de dados (linha digitável ou upload de arquivo)
+Botão para enviar dados para validação
+Exibição do boleto (render HTML/PDF)
+Resultado da validação
+
+b) Integração
+Front-end envia dados para Azure Function HTTP Trigger, que publica no Service Bus.
+Pode exibir feedback de sucesso ou falha usando SignalR ou polling.
+
+✅ 4. Validando a UI
+a) Validações Client-side
+Checar se a linha digitável tem o número correto de dígitos (ex: 47 ou 48 dígitos).
+Verificar formato de campos (data, valor).
+
+b) Validações Server-side (Azure Function Validador)
+Validar:
+Dígito verificador (módulo 10 / módulo 11)
+Formato da linha digitável
+Vencimento e valor
+Banco emissor
+
+[FunctionName("ValidadorBoleto")]
+public static async Task Run(
+    [ServiceBusTrigger("topico-boletos", "validador", Connection = "ServiceBusConnection")] string linhaDigitavel,
+    ILogger log)
+{
+    bool valido = ValidarLinhaDigitavel(linhaDigitavel);
+    // Persistir, logar, ou responder com status
+}
+
+✔️ Fluxo completo:
+Usuário insere boleto na UI
+Azure Function HTTP Trigger recebe e envia ao Service Bus
+Fila ou Tópico distribui para funções de validação e geração
+Validação executada e resultado retornado à UI
+
