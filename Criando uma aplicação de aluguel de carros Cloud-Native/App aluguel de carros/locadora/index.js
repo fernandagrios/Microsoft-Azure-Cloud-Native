@@ -30,7 +30,7 @@ app.post('/api/locacao', async (req, res) => {
     const keyVaultUrl = process.env.KEY_VAULT_URL;
     const secretClient = new SecretClient(keyVaultUrl, credential);
 
-    const serviceBusConnection = "Endpoint=sb://sb-dev-eastus-hsouza001.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=fpl3OkHhPlshu6BsXYIwkGBM/lJs4sn+L+ASbGjJ8Ug="//await secretClient.getSecret("ServiceBusConnectionString");
+    const serviceBusConnection = ""//await secretClient.getSecret("ServiceBusConnectionString");
 
     const sbClient = new ServiceBusClient(serviceBusConnection);
     const sender = sbClient.createSender("queue-locacoes");
